@@ -893,5 +893,46 @@ $('#view').innerHTML=loading;
 initStore();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
+  <!-- ===== ملخص التقرير الشهري (الوسام الذهبي) ===== -->
+<style>
+.sum-list{display:grid;gap:2px;margin-top:6px}
+.sum-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:.98rem}
+.sum-row b{font-weight:600;white-space:nowrap}
+.sum-row.minus b{color:var(--neg)}
+.sum-row.total{border-bottom:0;border-top:2px solid var(--ink);margin-top:6px;padding-top:12px;font-size:1.1rem}
+.sum-row.total b{font-size:1.5rem}
+.sum-row .hint{display:block;font-size:.78rem;color:var(--muted);font-weight:400}
+</style>
+<script>
+(function(){
+  if(typeof VIEWS==='undefined'||!VIEWS.report)return;
+  var R=VIEWS.report,html0=R.html,upd0=R.update;
+  R.html=function(){
+    return html0().replace('<h2 class="section-title">دخل الفروع</h2>',
+      '<h2 class="section-title">الملخص</h2><section class="hero" id="sumBox"><span class="hero-label">الصافي النهائي للفترة</span><strong class="hero-num" id="sumNet">—</strong><div class="sum-list" id="sumList"></div></section>'+
+      '<h2 class="section-title">دخل الفروع</h2>');
+  };
+  R.update=function(){
+    upd0.apply(this,arguments);
+    var box=document.getElementById('sumList');if(!box)return;
+    var a=UI.rFrom,b=UI.rTo;if(a>b){var t=a;a=b;b=t}
+    var T=sumEntries(S.entries.filter(function(x){return inRange(x.date,a,b)}));
+    var wages=0;S.workers.forEach(function(w){wages+=workerTotals(w.id,a,b).gross});
+    var repPaid=0;S.reps.forEach(function(r){repPaid+=repTotals(r.id,a,b).paid});
+    var net=T.in-T.out-wages-repPaid;
+    var row=function(label,hint,v,cls){return '<div class="sum-row '+(cls||'')+'"><span>'+label+(hint?'<span class="hint">'+hint+'</span>':'')+'</span><b>'+(cls==='minus'?'− ':'')+fmt(v)+' <small>ر.س</small></b></div>'};
+    box.innerHTML=
+      row('إجمالي دخل كل الفروع','كاش + مدى + فيزا',T.in)+
+      row('مصروفات الفروع','',T.out,'minus')+
+      row('رواتب العمال','المستحق كامل قبل خصم السلف',wages,'minus')+
+      row('المدفوع للمناديب','اللي سددته لهم في الفترة',repPaid,'minus')+
+      row('الصافي النهائي','',net,'total');
+    document.getElementById('sumNet').innerHTML=money(net);
+  };
+  if(typeof UI!=='undefined'&&UI.tab==='report'&&!UI.detail&&typeof mount==='function')mount();
+})();
+</script>
+<!-- ===== نهاية الملخص ===== -->
+
 </body>
 </html>
