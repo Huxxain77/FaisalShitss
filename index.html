@@ -312,6 +312,33 @@ select.inp{appearance:auto}
 </style>
 </head>
 <body>
+ <!-- ===== شاشة التحميل ===== -->
+<div id="splash" aria-hidden="true"><img src="icon-192.png" alt=""><strong>حسابات الفروع</strong><i></i></div>
+<style>
+#splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#F1F1F6;color:#1D1B36;transition:opacity .35s ease}
+#splash img{width:96px;height:96px;border-radius:24px;object-fit:cover;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+#splash strong{font:600 1.15rem "Readex Pro",Tahoma,sans-serif}
+#splash i{width:28px;height:28px;border-radius:50%;border:3px solid rgba(29,27,54,.12);border-top-color:#A77826;animation:splspin .8s linear infinite;margin-top:6px}
+#splash.out{opacity:0;pointer-events:none}
+@keyframes splspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#splash i{animation-duration:2s}}
+@media print{#splash{display:none!important}}
+</style>
+<script>
+(function(){
+  var t0=Date.now(),done=false;
+  function hide(){if(done)return;var s=document.getElementById('splash');if(!s)return;done=true;
+    setTimeout(function(){s.classList.add('out');setTimeout(function(){s.remove()},400)},Math.max(0,350-(Date.now()-t0)))}
+  function check(){var v=document.getElementById('view');if(v&&v.children.length&&!v.querySelector('.loading'))hide()}
+  document.addEventListener('DOMContentLoaded',function(){
+    var v=document.getElementById('view');if(!v)return hide();
+    new MutationObserver(check).observe(v,{childList:true,subtree:true});check();
+  });
+  setTimeout(hide,15000);
+})();
+</script>
+<!-- ===== نهاية شاشة التحميل ===== -->
+ 
 <header class="topbar"><div class="topbar-in">
   <div class="brand"><img class="brand-logo" src="icon-192.png" alt="">حسابات الفروع</div>
   <div class="top-end"><nav class="topnav" id="topnav" aria-label="الأقسام"></nav><button class="sync" id="sync" data-act="syncInfo" data-s="connecting" aria-live="polite"><i></i><span>جارٍ الاتصال</span></button><button class="logout-btn" id="logoutBtn" data-act="logout" hidden aria-label="تسجيل الخروج" title="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l-4 4 4 4M10 12h10"/></svg></button></div>
