@@ -312,7 +312,7 @@ select.inp{appearance:auto}
 </style>
 </head>
 <body>
- <!-- ===== شاشة التحميل ===== -->
+<!-- ===== شاشة التحميل ===== -->
 <div id="splash" aria-hidden="true"><img src="icon-192.png" alt=""><strong>حسابات الفروع</strong><i></i></div>
 <style>
 #splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#F1F1F6;color:#1D1B36;transition:opacity .35s ease}
@@ -334,11 +334,23 @@ select.inp{appearance:auto}
     var v=document.getElementById('view');if(!v)return hide();
     new MutationObserver(check).observe(v,{childList:true,subtree:true});check();
   });
-  setTimeout(hide,15000);
+  setTimeout(hide,15000);   // احتياط: لو صار شي، ما تعلق الشاشة
 })();
 </script>
 <!-- ===== نهاية شاشة التحميل ===== -->
- 
+<!-- ===== تنبيه التحديث ===== -->
+<div id="updBar" hidden><span>فيه تحديث جديد للتطبيق</span><button type="button" onclick="location.reload()">تحديث</button></div>
+<style>
+#updBar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:9000;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#1D1B36;color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:.95rem;max-width:520px;margin:0 auto}
+#updBar[hidden]{display:none}
+#updBar button{appearance:none;border:0;border-radius:10px;background:#E6BE6E;color:#1D1B36;font:inherit;font-weight:600;padding:8px 16px;cursor:pointer}
+@media print{#updBar{display:none!important}}
+</style>
+<script>
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.type==='app-updated'){var b=document.getElementById('updBar');if(b)b.hidden=false}});
+</script>
+<!-- ===== نهاية تنبيه التحديث ===== -->
+
 <header class="topbar"><div class="topbar-in">
   <div class="brand"><img class="brand-logo" src="icon-192.png" alt="">حسابات الفروع</div>
   <div class="top-end"><nav class="topnav" id="topnav" aria-label="الأقسام"></nav><button class="sync" id="sync" data-act="syncInfo" data-s="connecting" aria-live="polite"><i></i><span>جارٍ الاتصال</span></button><button class="logout-btn" id="logoutBtn" data-act="logout" hidden aria-label="تسجيل الخروج" title="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l-4 4 4 4M10 12h10"/></svg></button></div>
