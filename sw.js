@@ -1,7 +1,7 @@
 // يفتح التطبيق فورًا من النسخة المحفوظة، ويجيب التحديثات بالخلفية
-const CACHE='hesabat-wesam-v3';
+const CACHE='hesabat-wesam-v4';
 const FB='https://www.gstatic.com/firebasejs/10.12.2/';
-const PRECACHE=['./',FB+'firebase-app-compat.js',FB+'firebase-auth-compat.js',FB+'firebase-firestore-compat.js'];
+const PRECACHE=['./',FB+'firebase-app.js',FB+'firebase-auth.js',FB+'firebase-firestore.js'];
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
