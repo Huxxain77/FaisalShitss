@@ -301,6 +301,9 @@ select.inp{appearance:auto}
 .fee-row{display:grid;grid-template-columns:1fr 1.4fr auto;gap:10px;color:var(--muted)}
 .fee-row b{color:var(--neg);font-weight:500;min-width:70px;text-align:end}
 .fee-row.total{color:var(--ink);font-weight:500;border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+#staleBar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:19;background:#B5443A;color:#fff;text-align:center;font-size:.85rem;padding:7px 12px}
+#staleBar[hidden]{display:none}
+@media print{#staleBar{display:none!important}}
 .print-head{display:none}
 @page{size:A4;margin:14mm 12mm}
 @media print{
@@ -374,6 +377,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
   <div class="brand"><img class="brand-logo" src="icon-192.png" alt="">حسابات الفروع</div>
   <div class="top-end"><nav class="topnav" id="topnav" aria-label="الأقسام"></nav><button class="sync" id="sync" data-act="syncInfo" data-s="connecting" aria-live="polite"><i></i><span>جارٍ الاتصال</span></button><button class="logout-btn" id="logoutBtn" data-act="logout" hidden aria-label="تسجيل الخروج" title="تسجيل الخروج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l-4 4 4 4M10 12h10"/></svg></button></div>
 </div></header>
+<div id="staleBar" hidden>بدون نت: هذي آخر بيانات محفوظة على الجهاز، وممكن ما تكون الأحدث</div>
 <main id="view"></main>
 <nav class="tabbar" id="tabbar" aria-label="الأقسام"></nav>
 <div id="modal-root"></div>
@@ -383,7 +387,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
 <script type="module" onerror="window.dispatchEvent(new Event('fb-fail'))">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {initializeAuth,indexedDBLocalPersistence,browserLocalPersistence,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,collection,doc,query,where,getDocs,onSnapshot,setDoc,updateDoc,deleteDoc,terminate,clearIndexedDbPersistence} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {initializeFirestore,persistentLocalCache,persistentSingleTabManager,collection,doc,query,where,getDocs,onSnapshot,setDoc,updateDoc,deleteDoc,terminate,clearIndexedDbPersistence} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 let app,auth,db;
 const Q=(ref,cons)=>cons.length?query(ref,...cons):ref;
 const wrapQ=(ref,cons=[])=>({where:(f,op,v)=>wrapQ(ref,cons.concat([where(f,op,v)])),get:()=>getDocs(Q(ref,cons)),onSnapshot:(opts,next,err)=>onSnapshot(Q(ref,cons),opts,next,err)});
@@ -391,7 +395,7 @@ const wrapDoc=d=>({id:d.id,set:o=>setDoc(d,o),update:p=>updateDoc(d,p),delete:()
 const wrapColl=c=>Object.assign(wrapQ(c),{doc:id=>wrapDoc(id?doc(c,id):doc(c))});
 const authFn=function(){
   // بدون popupRedirectResolver: ما يحمّل صفحة من سيرفر Firebase قبل ما يتأكد من الدخول
-  if(!auth)auth=initializeAuth(app,{persistence:[indexedDBLocalPersistence,browserLocalPersistence]});
+  if(!auth)auth=initializeAuth(app,{persistence:[browserLocalPersistence,indexedDBLocalPersistence]});
   return{get currentUser(){return auth.currentUser},setPersistence:()=>Promise.resolve(),onAuthStateChanged:cb=>onAuthStateChanged(auth,cb),
     signInWithEmailAndPassword:(e,p)=>signInWithEmailAndPassword(auth,e,p),signOut:()=>signOut(auth),sendPasswordResetEmail:e=>sendPasswordResetEmail(auth,e)};
 };
@@ -399,7 +403,7 @@ authFn.Auth={Persistence:{LOCAL:'local'}};
 window.firebase={
   initializeApp(cfg){app=initializeApp(cfg);return app},
   firestore(){
-    if(!db){try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});window.__persist='ok'}
+    if(!db){try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager({forceOwnership:true})})});window.__persist='ok'}
       catch(e){db=initializeFirestore(app,{});window.__persist='fail:'+((e&&e.code)||'')}}
     return{collection:p=>wrapColl(collection(db,p)),
       enablePersistence:()=>window.__persist==='ok'?Promise.resolve():Promise.reject({code:(window.__persist||'').slice(5)}),
@@ -412,6 +416,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
+const APP_VERSION='4 أكتوبر - د';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
@@ -495,7 +500,7 @@ const confirmBox=(title,text,label='حذف')=>modal({title,body:`<p>${text}</p>`
 /* ---------- data store ---------- */
 const COLS=['branches','entries','reps','repTx','workers','workerTx','fixed'];
 const S={};COLS.forEach(c=>S[c]=[]);
-let ready=false;
+let ready=false,STALE=false;
 /* تحميل آخر 4 شهور فقط (الشهر الحالي + 3 قبله). الأقدم ينجاب وقت الحاجة، وما ينمسح شي */
 const WINDOWED=['entries','workerTx'];
 const CUTOFF_M=shiftMonth(curMonth(),-3),CUTOFF=CUTOFF_M+'-01';
@@ -589,7 +594,7 @@ function speedRows(){
   const sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);
   const ps=window.__persist==='ok'?'شغال':window.__persist?'ما يشتغل ('+esc(window.__persist.slice(5))+')':'—';
   const rows=[['وصول الصفحة',sec(nav.responseEnd)+(sw?' (من الجهاز)':' (من النت)')],['تحميل مكتبات Firebase',sec(T.libs)],['التأكد من تسجيل الدخول',sec(T.auth)],
-    ['عرض البيانات',sec(T.data)+(window.__dataCache==null?'':window.__dataCache?' (من الجهاز)':' (من النت)')],['اختفاء شاشة التحميل',sec(T.shown)],['التزامن مع النت',sec(T.synced)],['حفظ البيانات على الجهاز',ps]];
+    ['عرض البيانات',sec(T.data)+(window.__dataCache==null?'':window.__dataCache?' (من الجهاز)':' (من النت)')],['اختفاء شاشة التحميل',sec(T.shown)],['التزامن مع النت',sec(T.synced)],['حفظ البيانات على الجهاز',ps],['نسخة التطبيق',APP_VERSION]];
   const body=document.querySelector('#modal-root .mbody');if(!body)return;
   body.insertAdjacentHTML('beforeend',`<p style="margin:14px 0 6px;font-weight:500;color:var(--ink)">سرعة الفتح</p><div class="info-rows">${rows.map(([a,b])=>`<div><span>${a}</span><b dir="auto">${b}</b></div>`).join('')}</div>`);
 }
@@ -632,16 +637,24 @@ async function initStore(){
     $('#sync').hidden=false;$('#logoutBtn').hidden=false;
     store.root=fdb.collection('shop').doc('main');
     mount();renderSync();
-    const pending=new Set(COLS);
+    /* ما نعرض أي رقم لين يتأكد من النت إن البيانات هي الأحدث.
+       لو ما فيه نت: نعرض آخر نسخة محفوظة مع تنبيه واضح إنها ممكن تكون قديمة */
+    const pending=new Set(COLS),confirmed=new Set();
+    const showStale=on=>{STALE=on;const b=$('#staleBar');if(b)b.hidden=!on};
+    const openStale=()=>{if(ready)return;if(COLS.every(c=>LIVE[c]&&LIVE[c].__got)){ready=true;__mark('data');window.__dataCache=true;showStale(true);refresh()}};
+    clearTimeout(window.__staleT);window.__staleT=setTimeout(openStale,navigator.onLine?8000:600);
+    window.addEventListener('offline',()=>{if(!ready)openStale()});
     COLS.forEach(c=>unsubs.push((WINDOWED.includes(c)?store.root.collection(c).where('date','>=',CUTOFF):store.root.collection(c)).onSnapshot({includeMetadataChanges:true},snap=>{
-      const first=pending.has(c);
-      SYNC.cache[c]=snap.metadata.fromCache;
-      if(!snap.metadata.fromCache&&!snap.metadata.hasPendingWrites&&!SYNC.pending){SYNC.lastSync=Date.now();SYNC.err=null;__mark('synced')}
+      const fromCache=snap.metadata.fromCache;
+      SYNC.cache[c]=fromCache;
+      if(!fromCache&&!snap.metadata.hasPendingWrites&&!SYNC.pending){SYNC.lastSync=Date.now();SYNC.err=null;__mark('synced')}
       renderSync();
-      if(first||snap.docChanges().length){
-        LIVE[c]=snap.docs.map(d=>({...d.data(),id:d.id}));merge(c);
-        pending.delete(c);if(!pending.size){ready=true;__mark('data');if(window.__dataCache==null)window.__dataCache=snap.metadata.fromCache}refresh();
-      }
+      if(pending.has(c)||!confirmed.has(c)||snap.docChanges().length){LIVE[c]=snap.docs.map(d=>({...d.data(),id:d.id}));LIVE[c].__got=1;merge(c);pending.delete(c)}
+      if(!fromCache)confirmed.add(c);
+      if(!ready&&confirmed.size===COLS.length){ready=true;__mark('data');window.__dataCache=false}
+      if(STALE&&confirmed.size===COLS.length)showStale(false);
+      if(!ready&&!navigator.onLine)openStale();
+      if(ready)refresh();
     },e=>{SYNC.err=e;renderSync();toast(e&&e.code==='permission-denied'?'هذا الحساب ما له صلاحية على البيانات':'ما قدرت أقرأ البيانات، تأكد من قواعد Firestore')})));
   });
 }
