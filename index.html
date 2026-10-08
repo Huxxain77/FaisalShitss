@@ -252,6 +252,9 @@ tr.sel td{background:var(--brass-soft)}
 .info-rows b{font-weight:500}
 .login{max-width:400px;margin:6vh auto 0}
 .login .btn{width:100%}
+.pw-wrap{position:relative;display:block}.pw-wrap input{padding-right:46px!important}
+.pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:none;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:9px}
+.pw-eye.on{color:var(--ink)}.pw-eye.on svg path{stroke-dasharray:none}.pw-eye.on::after{content:'';position:absolute;width:22px;height:1.8px;background:currentColor;transform:rotate(-45deg);border-radius:2px}
 .row-wrap{display:flex;gap:8px;align-items:stretch}
 .row-wrap .row-card{flex:1;min-width:0}
 .row-btns{display:flex;flex-direction:column;gap:6px}
@@ -419,7 +422,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - د';
+const APP_VERSION='8 أكتوبر - هـ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
@@ -678,11 +681,12 @@ async function initStore(){
     },e=>{SYNC.err=e;renderSync();toast(e&&e.code==='permission-denied'?'هذا الحساب ما له صلاحية على البيانات':'ما قدرت أقرأ البيانات، تأكد من قواعد Firestore')})));
   });
 }
+function togglePw(b){const i=$('#lgPass');const show=i.type==='password';i.type=show?'text':'password';b.classList.toggle('on',show);b.setAttribute('aria-label',show?'إخفاء كلمة المرور':'إظهار كلمة المرور')}
 function showLogin(){
   $('#sync').hidden=true;$('#logoutBtn').hidden=true;$('#tabbar').hidden=true;$('#topnav').innerHTML='';
   $('#view').innerHTML=`<section class="panel login"><div class="page-head"><div><h1>تسجيل الدخول</h1><p class="sub">الجلسة تبقى 24 ساعة على هذا الجهاز</p></div></div>
   <label class="field"><span>البريد الإلكتروني</span><input type="email" id="lgUser" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" data-enter="login" value="${esc(savedEmail())}"></label>
-  <label class="field"><span>كلمة المرور</span><input type="password" id="lgPass" autocomplete="current-password" dir="ltr" data-enter="login"></label>
+  <label class="field"><span>كلمة المرور</span><span class="pw-wrap"><input type="password" id="lgPass" autocomplete="current-password" dir="ltr" data-enter="login"><button type="button" class="pw-eye" aria-label="إظهار كلمة المرور" onpointerdown="event.preventDefault()" onclick="togglePw(this)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
   <button class="btn block" data-act="login" id="lgBtn">دخول</button>
   <button class="back" data-act="resetPw" style="margin:10px auto 0">نسيت كلمة المرور؟</button></section>`;
   setTimeout(()=>{const e=savedEmail()?$('#lgPass'):$('#lgUser');if(e)e.focus()},50);
