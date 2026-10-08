@@ -498,7 +498,7 @@ function modal({title,body='',actions}){
 }
 /* رسالة تظهر كل ما ينفتح التطبيق، أو يرجع له بعد 5 دقائق بالخلفية */
 const showNag=()=>{if($('#modal-root').children.length)return;
-  modal({title:'رسالة مهمة',body:'<p style="font-size:1.1rem;line-height:1.8">اعطي اخوك الصغير الفلوس حق تعبه وشقاءه وسهره حرام عليك!</p>',actions:[{key:'ok',label:'حاضر حبيبي حسين'}]});
+  modal({title:'رسالة مهمة',body:'<p style="font-size:1.1rem;line-height:1.8">اعطي اخوك الصغير الفلوس حق تعبه وشقاءه وسهره حرام عليك!</p>',actions:[{key:'ok',label:'حاضر'}]});
   const sc=$('#modal-root .scrim');if(sc)sc.classList.add('center')};
 window.addEventListener('app-shown',()=>setTimeout(showNag,150),{once:true});
 (function(){let hiddenAt=0;document.addEventListener('visibilitychange',()=>{
