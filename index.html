@@ -419,7 +419,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - ج';
+const APP_VERSION='8 أكتوبر - د';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
@@ -1159,7 +1159,7 @@ async function deleteEntity(col,id){
   if(await safe(async()=>{for(const k of kids)await store.remove(c.child,k.id);await store.remove(col,id)}))undoToast(`تم حذف ${ent.name}`,[{c:col,x:ent},...kids.map(k=>({c:c.child,x:k}))]);
 }
 async function delRow(col,id,title){const x=S[col].find(y=>y.id===id);
-  if(await confirmBox(title,'تقدر تتراجع خلال ثواني بعد الحذف.')&&await safe(()=>store.remove(col,id))&&x)undoToast('تم الحذف',[{c:col,x}])}
+  if(await safe(()=>store.remove(col,id))&&x)undoToast('تم الحذف',[{c:col,x}])}
 
 let PRINT_TITLE='التقرير الشهري';
 /* ---------- ملف PDF (للآيفون: الطباعة من داخل التطبيق ما تشتغل فيه) ---------- */
