@@ -228,6 +228,7 @@ tr.sel td{background:var(--brass-soft)}
 /* modal */
 .scrim{position:fixed;inset:0;background:rgba(10,9,25,.48);z-index:50;display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 @media (min-width:600px){.scrim{align-items:center}}
+.scrim.center{align-items:center}
 .dialog{background:var(--surface);border-radius:20px;padding:22px;width:100%;max-width:420px;border:1px solid var(--line);animation:pop .18s ease-out}
 .dialog h3{font-size:1.15rem;margin-bottom:12px}
 .dialog p{margin:0 0 12px;color:var(--muted)}
@@ -416,7 +417,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - أ';
+const APP_VERSION='8 أكتوبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
@@ -497,7 +498,8 @@ function modal({title,body='',actions}){
 }
 /* رسالة تظهر كل ما ينفتح التطبيق، أو يرجع له بعد 5 دقائق بالخلفية */
 const showNag=()=>{if($('#modal-root').children.length)return;
-  modal({title:'رسالة مهمة',body:'<p style="font-size:1.1rem;line-height:1.8">اعطي اخوك الصغير الفلوس حق تعبه وشقاءه وسهره حرام عليك!</p>',actions:[{key:'ok',label:'حاضر'}]})};
+  modal({title:'رسالة مهمة',body:'<p style="font-size:1.1rem;line-height:1.8">اعطي اخوك الصغير الفلوس حق تعبه وشقاءه وسهره حرام عليك!</p>',actions:[{key:'ok',label:'حاضر حبيبي حسين'}]});
+  const sc=$('#modal-root .scrim');if(sc)sc.classList.add('center')};
 window.addEventListener('app-shown',()=>setTimeout(showNag,150),{once:true});
 (function(){let hiddenAt=0;document.addEventListener('visibilitychange',()=>{
   if(document.hidden)hiddenAt=Date.now();else if(hiddenAt&&Date.now()-hiddenAt>5*60*1000&&!document.getElementById('splash'))showNag()})})();
