@@ -236,6 +236,8 @@ tr.sel td{background:var(--brass-soft)}
 @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;font-size:.92rem;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
+.toast.undo{pointer-events:auto;display:flex;align-items:center;gap:14px;padding:8px 18px 8px 8px}
+.toast .undo-btn{appearance:none;border:0;border-radius:9px;background:#E6BE6E;color:#1D1B36;font:inherit;font-weight:600;padding:7px 16px;cursor:pointer}
 .sync{appearance:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;height:34px;padding:0 12px;display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--muted);cursor:pointer;white-space:nowrap;flex:none}
 .sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
 .sync[data-s="synced"] i{background:var(--pos)}
@@ -417,7 +419,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - ب';
+const APP_VERSION='8 أكتوبر - ج';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
@@ -474,7 +476,13 @@ const METHODS=[['cash','كاش'],['mada','مدى'],['visa','فيزا']];
 const ML=Object.fromEntries(METHODS);
 
 let toastT;
-function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
+function toast(msg){const t=$('#toast');t.classList.remove('undo');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
+/* تراجع بعد الحذف: يرجع نفس السجلات بنفس أرقامها */
+function undoToast(msg,docs){const t=$('#toast');clearTimeout(toastT);
+  t.innerHTML=`<span>${esc(msg)}</span><button type="button" class="undo-btn">تراجع</button>`;t.classList.add('undo','show');
+  let used=false;t.querySelector('.undo-btn').onclick=async()=>{if(used)return;used=true;t.classList.remove('show','undo');
+    if(await safe(async()=>{for(const d of docs)await store.restore(d.c,d.x)}))toast('تم التراجع، رجعت البيانات')};
+  toastT=setTimeout(()=>t.classList.remove('show','undo'),7000)}
 
 /* ---------- modal ---------- */
 let modalClose=null;
@@ -550,6 +558,10 @@ const store={
     if(this.root){if(OLD[c]&&OLD[c][id]){OLD[c][id]={...OLD[c][id],...p};merge(c);refresh()}
       track(this.root.collection(c).doc(id).update(p))}
     else{S[c]=S[c].map(x=>x.id===id?{...x,...p}:x);this.saveLocal();refresh()}},
+  async restore(c,x){const {id,...o}=x;
+    if(this.root){if(WINDOWED.includes(c)&&o.date&&o.date<CUTOFF){OLD[c][id]={...x};merge(c);refresh()}
+      track(this.root.collection(c).doc(id).set(o))}
+    else{S[c]=[...S[c].filter(y=>y.id!==id),x];this.saveLocal();refresh()}},
   async remove(c,id){
     if(this.root){if(OLD[c]&&OLD[c][id]){delete OLD[c][id];merge(c);refresh()}
       track(this.root.collection(c).doc(id).delete())}
@@ -1130,23 +1142,24 @@ async function delFixed(id){
     actions:[{key:'del',label:'حذف نهائي',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;
   if(r.values.confirm.replace(/\s/g,'')!=='حذف'){toast('ما تم الحذف، لازم تكتب كلمة حذف');return}
-  if(await safe(()=>store.remove('fixed',id)))toast('تم الحذف');
+  if(await safe(()=>store.remove('fixed',id)))undoToast('تم الحذف',[{c:'fixed',x:f}]);
 }
 const ENT={branches:{label:'الفرع',child:'entries',fk:'branchId'},reps:{label:'المندوب',child:'repTx',fk:'repId'},workers:{label:'العامل',child:'workerTx',fk:'workerId'}};
 const withDel=(html,col,id)=>`<div class="row-wrap">${html}<div class="row-btns"><button class="icon-btn edit-btn" data-act="editEntity" data-col="${col}" data-id="${id}" aria-label="تعديل">${svg('edit')}</button><button class="icon-btn del-btn" data-act="delEntity" data-col="${col}" data-id="${id}" aria-label="حذف">${svg('trash')}</button></div></div>`;
 async function deleteEntity(col,id){
   const c=ENT[col],ent=S[col].find(x=>x.id===id);if(!ent)return;
   let kids=S[c.child].filter(x=>x[c.fk]===id);
-  if(store.root&&WINDOWED.includes(c.child)){try{const sn=await store.root.collection(c.child).where(c.fk,'==',id).get();kids=sn.docs.map(d=>({id:d.id}))}catch(e){toast('تأكد من اتصال النت قبل الحذف');return}}
+  if(store.root&&WINDOWED.includes(c.child)){try{const sn=await store.root.collection(c.child).where(c.fk,'==',id).get();kids=sn.docs.map(d=>({...d.data(),id:d.id}))}catch(e){toast('تأكد من اتصال النت قبل الحذف');return}}
   const r=await modal({title:`حذف ${c.label} «${esc(ent.name)}»؟`,
-    body:`<p>${kids.length?`بينحذف ${c.label} ومعه <b>${kids.length}</b> سجل تابع له نهائيًا.`:`بينحذف ${c.label} نهائيًا.`} ما تقدر ترجعه بعد الحذف.</p><label class="field"><span>للتأكيد اكتب كلمة <b>حذف</b></span><input type="text" name="confirm" autocomplete="off" placeholder="حذف"></label>`,
+    body:`<p>${kids.length?`بينحذف ${c.label} ومعه <b>${kids.length}</b> سجل تابع له نهائيًا.`:`بينحذف ${c.label} نهائيًا.`} تقدر تتراجع خلال ثواني بعد الحذف.</p><label class="field"><span>للتأكيد اكتب كلمة <b>حذف</b></span><input type="text" name="confirm" autocomplete="off" placeholder="حذف"></label>`,
     actions:[{key:'del',label:'حذف نهائي',cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]});
   if(!r)return;
   if(r.values.confirm.replace(/\s/g,'')!=='حذف'){toast('ما تم الحذف، لازم تكتب كلمة حذف');return}
   if(UI.detail&&UI.detail.id===id)go(UI.tab);
-  if(await safe(async()=>{for(const k of kids)await store.remove(c.child,k.id);await store.remove(col,id)}))toast(`تم حذف ${ent.name}`);
+  if(await safe(async()=>{for(const k of kids)await store.remove(c.child,k.id);await store.remove(col,id)}))undoToast(`تم حذف ${ent.name}`,[{c:col,x:ent},...kids.map(k=>({c:c.child,x:k}))]);
 }
-async function delRow(col,id,title){if(await confirmBox(title,'ما تقدر ترجعه بعد الحذف.'))await safe(()=>store.remove(col,id))}
+async function delRow(col,id,title){const x=S[col].find(y=>y.id===id);
+  if(await confirmBox(title,'تقدر تتراجع خلال ثواني بعد الحذف.')&&await safe(()=>store.remove(col,id))&&x)undoToast('تم الحذف',[{c:col,x}])}
 
 let PRINT_TITLE='التقرير الشهري';
 /* ---------- ملف PDF (للآيفون: الطباعة من داخل التطبيق ما تشتغل فيه) ---------- */
