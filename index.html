@@ -422,7 +422,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='8 أكتوبر - هـ';
+const APP_VERSION='11 أكتوبر - هـ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
@@ -507,13 +507,6 @@ function modal({title,body='',actions}){
     (root.querySelector('input')||root.querySelector('.btn')).focus();
   });
 }
-/* رسالة تظهر كل ما ينفتح التطبيق، أو يرجع له بعد 5 دقائق بالخلفية */
-const showNag=()=>{if($('#modal-root').children.length)return;
-  modal({title:'رسالة مهمة',body:'<p style="font-size:1.1rem;line-height:1.8">اعطي اخوك الصغير الفلوس حق تعبه وشقاءه وسهره حرام عليك!</p>',actions:[{key:'ok',label:'حاضر'}]});
-  const sc=$('#modal-root .scrim');if(sc)sc.classList.add('center')};
-window.addEventListener('app-shown',()=>setTimeout(showNag,150),{once:true});
-(function(){let hiddenAt=0;document.addEventListener('visibilitychange',()=>{
-  if(document.hidden)hiddenAt=Date.now();else if(hiddenAt&&Date.now()-hiddenAt>5*60*1000&&!document.getElementById('splash'))showNag()})})();
 const confirmBox=(title,text,label='حذف')=>modal({title,body:`<p>${text}</p>`,actions:[{key:'ok',label,cls:'danger'},{key:'cancel',label:'إلغاء',cls:'ghost'}]}).then(r=>!!r);
 
 /* ---------- data store ---------- */
