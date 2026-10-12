@@ -149,7 +149,7 @@ main{max-width:1180px;margin:0 auto;padding:22px max(16px,env(safe-area-inset-ri
 @media (min-width:640px){.grid2{grid-template-columns:1fr 1fr}}
 .field{display:block;margin-bottom:10px}
 .field>span{display:block;font-size:.82rem;color:var(--muted);margin-bottom:5px}
-select.inp,input[type=text],input[type=password],input[type=email],input[type=date],input[type=month]{width:100%;height:46px;border:1px solid var(--line);background:var(--surface-2);border-radius:11px;padding:0 12px;font-size:16px;min-width:0}
+select.inp,input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search],input[type=date],input[type=month]{width:100%;height:46px;border:1px solid var(--line);background:var(--surface-2);border-radius:11px;padding:0 12px;font-size:16px;min-width:0}
 input:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 22%,transparent)}
 input.err{border-color:var(--neg);box-shadow:0 0 0 3px color-mix(in srgb,var(--neg) 20%,transparent)}
 .inline{display:flex;gap:8px}
@@ -338,6 +338,8 @@ select.inp{appearance:auto}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .dialog{max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .scrim.kb{align-items:flex-end;padding-bottom:10px}
+/* الحروف اللي لها ذيل تحت (ح خ ج ي) كانت تنقص من تحت في الآيفون */
+input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search]{line-height:normal;padding-top:0;padding-bottom:0;-webkit-appearance:none;appearance:none}
 </style>
 </head>
 <body>
@@ -424,7 +426,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='12 أكتوبر - ب';
+const APP_VERSION='12 أكتوبر - ج';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
