@@ -39,6 +39,7 @@
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js">
+<link rel="preload" as="font" type="font/woff" href="readex-input.woff" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
@@ -339,7 +340,10 @@ select.inp{appearance:auto}
 .dialog{max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .scrim.kb{align-items:flex-end;padding-bottom:10px}
 /* الحروف اللي لها ذيل تحت (ح خ ج ي) كانت تنقص من تحت في الآيفون */
-input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search]{line-height:34px;padding-top:5px;padding-bottom:5px;-webkit-appearance:none;appearance:none;overflow:visible}
+@font-face{font-family:"Readex Input";src:url(readex-input.woff) format("woff");font-weight:100 900;font-display:swap}
+/* نفس خط Readex بس بمقاسات أعمق تحت، عشان الآيفون ما يقص ذيل ح خ ج ي داخل الخانات */
+input,textarea,select{font-family:"Readex Input","Readex Pro","IBM Plex Sans Arabic",Tahoma,sans-serif}
+input[type=text],input[type=password],input[type=email],input[type=tel],input[type=search]{line-height:normal;padding-top:0;padding-bottom:0;-webkit-appearance:none;appearance:none}
 </style>
 </head>
 <body>
@@ -426,7 +430,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='12 أكتوبر - د';
+const APP_VERSION='12 أكتوبر - هـ';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
