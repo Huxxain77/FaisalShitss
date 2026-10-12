@@ -336,6 +336,8 @@ select.inp{appearance:auto}
   thead{display:table-header-group}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.dialog{max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.scrim.kb{align-items:flex-end;padding-bottom:10px}
 </style>
 </head>
 <body>
@@ -422,7 +424,7 @@ window.dispatchEvent(new Event('fb-ready'));
 </script>
 <script>
 __mark('main');
-const APP_VERSION='11 أكتوبر - هـ';
+const APP_VERSION='12 أكتوبر - ب';
 /* ========= إعدادات Firebase: الصق هنا بيانات مشروعك ========= */
 const firebaseConfig = {
   apiKey: "AIzaSyDf5_e1e-YvSsaLHor8xju5qny_kM-FDC0",
@@ -1047,6 +1049,16 @@ function pcsPreview(){
   p.textContent=w&&n>0?`${fmt(n)} × ${fmt(w.price)} = ${fmt(n*w.price)} ر.س`:'';
 }
 
+/* الكيبورد في الآيفون يغطي النافذة: نخلي النافذة تقعد فوق الكيبورد دايم */
+(function(){const vv=window.visualViewport;if(!vv)return;
+  const fit=()=>{const sc=document.querySelector('#modal-root .scrim');if(!sc)return;
+    const kb=innerHeight-vv.height>80;
+    sc.style.top=kb?vv.offsetTop+'px':'';sc.style.height=kb?vv.height+'px':'';sc.style.bottom=kb?'auto':'';sc.classList.toggle('kb',kb);
+    const a=document.activeElement;if(kb&&a&&sc.contains(a))a.scrollIntoView({block:'nearest'})};
+  vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);
+  document.addEventListener('focusin',()=>setTimeout(fit,60));
+  new MutationObserver(fit).observe(document.getElementById('modal-root'),{childList:true});
+})();
 /* ---------- actions ---------- */
 const typeField=(v='')=>{const types=[...new Set(['خياط','قصّاص','كوّاي',...S.workers.map(w=>w.type).filter(Boolean)])];
   return`<label class="field"><span>نوع العامل</span><input type="text" name="type" list="wtypes" value="${esc(v)}" placeholder="مثال: خياط، قصّاص، كوّاي"></label><datalist id="wtypes">${types.map(t=>`<option value="${esc(t)}">`).join('')}</datalist>`};
